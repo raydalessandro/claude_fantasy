@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Fantasy - Multi-AI Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .ai-selector {
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .ai-selector label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .ai-button {
+            padding: 10px 25px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .ai-button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .ai-button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .clear-button {
+            margin-left: auto;
+            padding: 8px 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .clear-button:hover {
+            background: #ff5252;
+            transform: scale(1.05);
+        }
+        
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        .message-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .human-avatar {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .claude-avatar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .deepseek-avatar {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+        
+        .message-content {
+            flex: 1;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .message-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            font-weight: normal;
+        }
+        
+        .message-text {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .input-area {
+            padding: 20px 30px;
+            background: white;
+            border-top: 2px solid #eee;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        
+        .input-area input:focus {
+            border-color: #667eea;
+        }
+        
+        .input-area input:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+        
+        .send-button {
+            padding: 15px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+            font-size: 15px;
+        }
+        
+        .send-button:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #ffe6e6;
+            color: #d32f2f;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+        }
+        
+        .welcome-message h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Claude Fantasy</h1>
+            <div class="status">Multi-AI Chat Orchestrator</div>
+        </div>
+        
+        <div class="ai-selector">
+            <label>Chi deve rispondere:</label>
+            <button class="ai-button active" id="selectClaude" onclick="selectAI('claude')">
+                🤖 Claude
+            </button>
+            <button class="ai-button" id="selectDeepSeek" onclick="selectAI('deepseek')">
+                🧠 DeepSeek
+            </button>
+            <button class="clear-button" onclick="clearConversation()">
+                🗑️ Pulisci Chat
+            </button>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="welcome-message">
+                <h2>Benvenuto in Claude Fantasy!</h2>
+                <p>Scrivi un messaggio e scegli quale AI deve rispondere.</p>
+                <p style="margin-top: 10px; font-size: 14px; color: #999;">
+                    Assicurati che il server sia in esecuzione su <code>http://localhost:3000</code>
+                </p>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Scrivi il tuo messaggio..." 
+                onkeypress="handleKeyPress(event)"
+            />
+            <button class="send-button" id="sendButton" onclick="sendMessage()">
+                Invia
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        let selectedAI = 'claude';
+        let isLoading = false;
+        const API_URL = 'http://localhost:3000';
+        
+        function selectAI(ai) {
+            selectedAI = ai;
+            document.getElementById('selectClaude').classList.remove('active');
+            document.getElementById('selectDeepSeek').classList.remove('active');
+            
+            if (ai === 'claude') {
+                document.getElementById('selectClaude').classList.add('active');
+            } else {
+                document.getElementById('selectDeepSeek').classList.add('active');
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !isLoading) {
+                sendMessage();
+            }
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isLoading) return;
+            
+            // Disable input during loading
+            isLoading = true;
+            input.disabled = true;
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span class="loading"></span>';
+            
+            // Add human message to chat
+            addMessageToChat('human', 'Tu', message);
+            input.value = '';
+            
+            // Remove welcome message if present
+            const welcomeMsg = document.querySelector('.welcome-message');
+            if (welcomeMsg) {
+                welcomeMsg.remove();
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        ai: selectedAI,
+                        conversation_id: 'default'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Add AI response to chat
+                addMessageToChat(selectedAI, data.speaker, data.response);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Errore di connessione: ${error.message}. Assicurati che il server sia avviato.`);
+            } finally {
+                // Re-enable input
+                isLoading = false;
+                input.disabled = false;
+                sendButton.disabled = false;
+                sendButton.innerHTML = 'Invia';
+                input.focus();
+            }
+        }
+        
+        function addMessageToChat(type, name, text) {
+            const chatArea = document.getElementById('chatArea');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            let avatarClass = '';
+            let avatarText = '';
+            
+            if (type === 'human') {
+                avatarClass = 'human-avatar';
+                avatarText = '👤';
+            } else if (type === 'claude') {
+                avatarClass = 'claude-avatar';
+                avatarText = '🤖';
+            } else if (type === 'deepseek') {
+                avatarClass = 'deepseek-avatar';
+                avatarText = '🧠';
+            }
+            
+            const timestamp = new Date().toLocaleTimeString('it-IT', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar ${avatarClass}">${avatarText}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span>${name}</span>
+                        <span class="message-time">${timestamp}</span>
+                    </div>
+                    <div class="message-text">${escapeHtml(text)}</div>
+                </div>
+            `;
+            
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function showError(message) {
+            const chatArea = document.getElementById('chatArea');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            chatArea.appendChild(errorDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            
+            // Remove error after 5 seconds
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function clearConversation() {
+            if (!confirm('Vuoi davvero cancellare tutta la conversazione?')) {
+                return;
+            }
+            
+            try {
+                await fetch(`${API_URL}/api/conversation/default`, {
+                    method: 'DELETE'
+                });
+                
+                const chatArea = document.getElementById('chatArea');
+                chatArea.innerHTML = `
+                    <div class="welcome-message">
+                        <h2>Conversazione cancellata!</h2>
+                        <p>Inizia una nuova conversazione.</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error clearing conversation:', error);
+                showError('Errore durante la cancellazione della conversazione.');
+            }
+        }
+        
+        // Initialize with Claude selected
+        selectAI('claude');
+        
+        // Focus on input when page loads
+        window.addEventListener('load', () => {
+            document.getElementById('messageInput').focus();
+        });
+    </script>
+</body>
+</html>
