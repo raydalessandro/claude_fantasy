@@ -1,0 +1,27 @@
+# Claude Fantasy - Python Dependencies
+
+# Core AI APIs
+anthropic>=0.39.0
+openai>=1.50.0  # For potential future integration
+
+# Web Framework (choose one)
+fastapi>=0.115.0
+uvicorn>=0.32.0
+# OR
+# flask>=3.0.0
+
+# Async support
+httpx>=0.27.0
+aiohttp>=3.10.0
+
+# Data handling
+pydantic>=2.9.0
+python-dotenv>=1.0.0
+
+# Database (optional)
+sqlalchemy>=2.0.0
+aiosqlite>=0.20.0
+
+# Utilities
+tiktoken>=0.7.0  # Token counting
+python-dateutil>=2.9.0
